@@ -3,18 +3,26 @@ Generate new topics using AI when topics.txt runs low.
 
 This script:
 1. Checks if topics.txt has enough topics (< 50 remaining)
-2. Generates 100 new unique topics using Pollinations AI
+2. Generates 100 new unique topics using Pollinations AI paid API
 3. Appends them to topics.txt
 """
 
+import os
 import requests
 from urllib.parse import quote
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 def generate_new_topics(count=100):
-    """Generate new Turkish topics about ancient women."""
-    
-    base_url = "https://text.pollinations.ai/"
+    """Generate new Turkish topics about ancient women using paid Pollinations API."""
+
+    api_key = os.getenv("POLLINATIONS_API_KEY")
+    if not api_key:
+        raise ValueError("POLLINATIONS_API_KEY environment variable is required for paid API")
+
     system = (
         "Sen antik medeniyetlerde kadınların tarihi konusunda uzmanlaşmış bir tarihçisin. "
         f"{count} benzersiz konu başlığı oluştur Türkçe dilinde. "
@@ -22,14 +30,20 @@ def generate_new_topics(count=100):
         "Konular şunları kapsamalı: yasalar, gelenekler, ünlü kadınlar, meslekler, din, kültür, sanat. "
         "SADECE konuları yaz, her satırda bir tane, numara ve işaret kullanma."
     )
-    
+
     prompt = f"Antik medeniyetlerde kadınlar hakkında {count} benzersiz konu oluştur"
-    
-    url = base_url + quote(prompt)
-    params = {"model": "openai", "temperature": 0.9, "system": system}
-    
+
+    url = f"https://gen.pollinations.ai/text/{quote(prompt)}"
+    headers = {"Authorization": f"Bearer {api_key}"}
+    params = {
+        "model": "nova-fast",
+        "temperature": 0.9,
+        "system": system,
+        "json": False
+    }
+
     print(f"[topics] Generating {count} new topics...")
-    r = requests.get(url, params=params, timeout=120)
+    r = requests.get(url, headers=headers, params=params, timeout=120)
     r.raise_for_status()
     
     # Parse topics

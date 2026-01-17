@@ -23,6 +23,36 @@ cd Youtube\ automation
 pip install -r requirements.txt
 ```
 
+### 2. Setup Environment Variables
+
+**Copy the environment template:**
+```bash
+cp env-template.txt .env
+```
+
+**Edit .env file with your API keys:**
+```bash
+# Required: Pollinations AI API Key
+# Get your API key from: https://enter.pollinations.ai
+POLLINATIONS_API_KEY=sk_your_api_key_here
+
+# Optional: YouTube and social media credentials
+# Follow SETUP_GUIDE.md for detailed instructions
+```
+
+**Install dependencies and test:**
+```bash
+pip install -r requirements.txt
+python test_api.py
+```
+
+**For GitHub Actions:**
+1. Go to your repository Settings → Secrets and variables → Actions
+2. Add secrets for each API key you want to use:
+   - `POLLINATIONS_API_KEY`
+   - `YT_CLIENT_ID`, `YT_CLIENT_SECRET`, `YT_REFRESH_TOKEN` (for YouTube)
+   - Other social media tokens as needed
+
 ### 2. Add Your Music
 
 ```bash

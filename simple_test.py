@@ -1,53 +1,115 @@
+#!/usr/bin/env python3
 """
-Simple YouTube Upload Test
-
-This will attempt a minimal YouTube API call to see the exact error.
+Simple test to generate text and images using Pollinations AI
 """
 
-import json
-from google.oauth2.credentials import Credentials
-from google.auth.transport.requests import Request
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
+import os
+import requests
+from urllib.parse import quote
+from pathlib import Path
+from dotenv import load_dotenv
 
-# Load credentials
-with open('youtube_credentials.json', 'r') as f:
-    creds_data = json.load(f)
+# Load environment variables
+load_dotenv()
 
-# Create credentials
-creds = Credentials(
-    None,
-    refresh_token=creds_data['refresh_token'],
-    token_uri="https://oauth2.googleapis.com/token",
-    client_id=creds_data['client_id'],
-    client_secret=creds_data['client_secret'],
-    scopes=["https://www.googleapis.com/auth/youtube"]
-)
+def test_text_generation():
+    """Test text generation with Amazon Nova Micro"""
+    api_key = os.getenv("POLLINATIONS_API_KEY")
+    if not api_key:
+        print("ERROR: No API key found")
+        return False
 
-print("Refreshing token...")
-creds.refresh(Request())
-print("✅ Token refreshed successfully")
-print(f"Access token: {creds.token[:50]}...")
+    print("Testing text generation...")
 
-print("\nBuilding YouTube client...")
-youtube = build('youtube', 'v3', credentials=creds)
+    system = "You are a helpful assistant. Write a short story about ancient women."
+    prompt = "Tell me about Cleopatra and her role in history"
 
-print("\nAttempting API call...")
-try:
-    request = youtube.channels().list(
-        part="snippet",
-        mine=True
-    )
-    response = request.execute()
-    print("✅ SUCCESS!")
-    print(f"Response: {json.dumps(response, indent=2)}")
-    
-except HttpError as e:
-    print(f"\n❌ HTTP Error {e.resp.status}")
-    print(f"Error details: {e.error_details}")
-    print(f"\nFull error:")
-    print(e)
-    
-except Exception as e:
-    print(f"\n❌ Error: {type(e).__name__}")
-    print(f"Message: {e}")
+    url = f"https://gen.pollinations.ai/text/{quote(prompt)}"
+    headers = {"Authorization": f"Bearer {api_key}"}
+    params = {
+        "model": "nova-fast",
+        "temperature": 0.8,
+        "system": system,
+        "json": False
+    }
+
+    try:
+        r = requests.get(url, headers=headers, params=params, timeout=30)
+        r.raise_for_status()
+
+        response = r.text.strip()
+        print("SUCCESS: Text generated!")
+        print(f"Length: {len(response)} characters")
+        print("First 200 characters:")
+        print(response[:200] + "...")
+
+        # Save to file
+        with open("output/story_test.txt", "w", encoding="utf-8") as f:
+            f.write(response)
+        print("Saved to output/story_test.txt")
+
+        return True
+
+    except Exception as e:
+        print(f"ERROR: {e}")
+        return False
+
+def test_image_generation():
+    """Test image generation"""
+    api_key = os.getenv("POLLINATIONS_API_KEY")
+    if not api_key:
+        print("ERROR: No API key found")
+        return False
+
+    print("\nTesting image generation...")
+
+    prompt = "beautiful ancient Egyptian woman, Cleopatra, detailed portrait, historical clothing"
+
+    url = f"https://image.pollinations.ai/prompt/{quote(prompt)}"
+    params = {
+        "width": 1024,
+        "height": 1024,
+        "model": "flux",
+        "seed": 42
+    }
+
+    try:
+        r = requests.get(url, params=params, timeout=60)
+        r.raise_for_status()
+
+        # Save image
+        output_dir = Path("output")
+        output_dir.mkdir(exist_ok=True)
+        image_path = output_dir / "test_image.jpg"
+
+        with open(image_path, "wb") as f:
+            f.write(r.content)
+
+        print("SUCCESS: Image generated!")
+        print(f"Saved to {image_path}")
+        print(f"Size: {len(r.content)} bytes")
+
+        return True
+
+    except Exception as e:
+        print(f"ERROR: {e}")
+        return False
+
+if __name__ == "__main__":
+    print("Testing Pollinations AI Integration")
+    print("=" * 40)
+
+    # Create output directory
+    Path("output").mkdir(exist_ok=True)
+
+    # Test text generation
+    text_ok = test_text_generation()
+
+    # Test image generation
+    image_ok = test_image_generation()
+
+    print("\n" + "=" * 40)
+    if text_ok and image_ok:
+        print("SUCCESS: All tests passed!")
+    else:
+        print("Some tests failed - check your API key and connection")
