@@ -21,6 +21,7 @@ from upload_tiktok import upload_to_tiktok
 from upload_facebook import upload_to_facebook
 from upload_threads import upload_to_threads
 from upload_twitter import upload_to_twitter
+from upload_vk import upload_to_vk
 
 def main():
     """Upload video to all configured platforms with enhanced error handling."""
@@ -56,7 +57,8 @@ def main():
         'tiktok': f"{story[:2200] if len(story) > 2200 else story} #KadınTarihi #AntikTarih #Tarih #Eğitim #FYP",
         'facebook': f"{story[:63206] if len(story) > 63206 else story}\n\n#KadınTarihi #AntikTarih #Tarih #Eğitim",
         'threads': f"{story[:500] if len(story) > 500 else story} #KadınTarihi #AntikTarih #Tarih #Eğitim",
-        'twitter': f"{story[:280] if len(story) > 280 else story} #KadınTarihi #AntikTarih #Tarih"
+        'twitter': f"{story[:280] if len(story) > 280 else story} #KadınTarihi #AntikTarih #Tarih",
+        'vk': f"{story[:220] if len(story) > 220 else story}\n\n#KadınTarihi #AntikTarih #Tarih #Eğitim"
     }
 
     tags = [
@@ -173,6 +175,24 @@ def main():
             results['twitter'] = {'error': str(e)}
     else:
         print("⏭️  Skipping Twitter (credentials not set)")
+
+    # Upload to VK
+    if all([
+        os.getenv('VK_ACCESS_TOKEN'),
+        os.getenv('VK_GROUP_ID')
+    ]):
+        print("\n" + "="*60)
+        print("🇷🇺 UPLOADING TO VK...")
+        print("="*60)
+        try:
+            result = upload_to_vk(str(video_file), descriptions['vk'], title)
+            results['vk'] = result
+            print(f"✅ VK: Post ID {result.get('post_id', 'unknown')}")
+        except Exception as e:
+            print(f"❌ VK failed: {e}")
+            results['vk'] = {'error': str(e)}
+    else:
+        print("⏭️  Skipping VK (credentials not set)")
 
     # Detailed Summary
     print("\n" + "="*80)
