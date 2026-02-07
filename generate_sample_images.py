@@ -43,8 +43,8 @@ def generate_sample_images():
         # High-quality photorealistic prompt optimized for flux model
         full_prompt = f"{prompt}, hyper-realistic portrait, extremely detailed facial features, intricate traditional ancient clothing with rich textures, professional studio lighting, dramatic shadows and highlights, RAW photography, photorealistic, 8K resolution, ultra-high detail, sharp focus, depth of field, bokeh, cinematic composition, masterpiece, award-winning photography, volumetric lighting, hyper-detailed skin texture, realistic eyes with catchlights, museum quality art, historical accuracy, elegant and graceful pose, appropriate for all audiences, clean and tasteful"
 
-        # Using the working configuration - check if images have watermarks
-        url = f"https://image.pollinations.ai/prompt/{quote(full_prompt)}"
+        # Using the paid gateway image endpoint
+        url = f"https://gen.pollinations.ai/image/{quote(full_prompt)}"
         headers = {"Authorization": f"Bearer {api_key}"}  # Add auth header
         params = {
             "width": 1080,

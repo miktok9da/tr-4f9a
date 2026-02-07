@@ -216,7 +216,7 @@ def main():
     if story_file.exists():
         caption = story_file.read_text(encoding='utf-8')[:500]  # Threads has character limit
     else:
-        caption = "История древних женщин 🏛️"
+        caption = "Antik Kadınların Tarihi 🏛️"
 
     try:
         result = upload_to_threads(str(video_file), caption)

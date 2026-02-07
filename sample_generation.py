@@ -32,20 +32,27 @@ def generate_sample_text():
 
     prompt = "Konu: Antik Yunan'da kadınların miras hakları. İlginç bir tarihi gerçek anlat."
 
-    url = f"https://gen.pollinations.ai/text/{quote(prompt)}"
-    headers = {"Authorization": f"Bearer {api_key}"}
-    params = {
-        "model": "nova-fast",
-        "temperature": 1.0,
-        "system": system,
-        "json": False
+    # Using the paid API V1 Chat Completions endpoint
+    url = "https://gen.pollinations.ai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "openai",
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": prompt}
+        ],
+        "temperature": 1.0
     }
 
     try:
-        r = requests.get(url, headers=headers, params=params, timeout=30)
+        r = requests.post(url, headers=headers, json=payload, timeout=30)
         r.raise_for_status()
-
-        text = r.text.strip()
+        
+        response_json = r.json()
+        text = response_json['choices'][0]['message']['content'].strip()
         print(f"SUCCESS: Generated Turkish text ({len(text.split())} words)")
         print("Text contains Turkish characters - saved to file (check samples/sample_story.txt)")
 
@@ -90,7 +97,9 @@ def generate_sample_images(story_text):
         # Create detailed prompt for image generation
         prompt = f"stunning beautiful woman in ancient Greece, {scene}, photorealistic portrait, elegant ancient Greek clothing, dramatic cinematic lighting, highly detailed face and eyes, historical accuracy, professional photography, 8k quality, masterpiece, beautiful composition, vibrant colors, sharp focus"
 
-        url = f"https://image.pollinations.ai/prompt/{quote(prompt)}"
+        # Using the paid gateway image endpoint
+        url = f"https://gen.pollinations.ai/image/{quote(prompt)}"
+        headers = {"Authorization": f"Bearer {os.getenv('POLLINATIONS_API_KEY')}"}
         params = {
             "width": 1080,
             "height": 1920,  # Vertical for YouTube Shorts
@@ -99,7 +108,7 @@ def generate_sample_images(story_text):
         }
 
         try:
-            r = requests.get(url, params=params, timeout=60)
+            r = requests.get(url, headers=headers, params=params, timeout=60)
             r.raise_for_status()
 
             image_path = output_dir / f"sample_scene_{i+1:02d}.jpg"

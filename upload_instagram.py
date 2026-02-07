@@ -214,7 +214,7 @@ def main():
     if story_file.exists():
         caption = story_file.read_text(encoding='utf-8')[:2200]  # Instagram caption limit
     else:
-        caption = "История древних женщин 🏛️ #Shorts #История #Женщины"
+        caption = "Antik Kadınların Tarihi 🏛️ #Shorts #Tarih #Kadınlar"
 
     try:
         result = upload_to_instagram(str(video_file), caption)

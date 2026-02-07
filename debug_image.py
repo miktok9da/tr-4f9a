@@ -7,7 +7,8 @@ print("Testing image generation...")
 
 prompt = "beautiful ancient Egyptian woman, Cleopatra, detailed portrait, historical clothing"
 
-url = f"https://image.pollinations.ai/prompt/{quote(prompt)}"
+url = f"https://gen.pollinations.ai/image/{quote(prompt)}"
+headers = {"Authorization": f"Bearer {os.getenv('POLLINATIONS_API_KEY')}"}
 params = {
     "width": 1024,
     "height": 1024,
@@ -16,10 +17,11 @@ params = {
 }
 
 print(f"URL: {url}")
+print(f"Headers: Authorization: Bearer [HIDDEN]")
 print(f"Params: {params}")
 
 try:
-    r = requests.get(url, params=params, timeout=60)
+    r = requests.get(url, headers=headers, params=params, timeout=60)
     print(f"Status code: {r.status_code}")
     print(f"Response headers: {dict(r.headers)}")
 

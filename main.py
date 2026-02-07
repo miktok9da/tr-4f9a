@@ -12,6 +12,9 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
+# Set base URL for Pollinations AI Paid Gateway
+POLLINATIONS_BASE_URL = "https://gen.pollinations.ai"
+
 # ---------------- CONFIG ----------------
 
 NUM_IMAGES = 8  # 8 unique scenes (faster generation)
@@ -50,10 +53,25 @@ def ensure_dirs():
         f.unlink()
 
 def choose_topic_for_today():
+    """Pick the first available topic and remove it from the file for rotation."""
+    if not Path(TOPICS_FILE).exists():
+        return "Ancient Women History"
+        
     with open(TOPICS_FILE, "r", encoding="utf-8") as f:
         topics = [line.strip() for line in f if line.strip()]
-    today = datetime.date.today()
-    return topics[today.toordinal() % len(topics)]
+    
+    if not topics:
+        return "Ancient Women History"
+        
+    # Take the first topic
+    topic = topics[0]
+    
+    # Save the rest back to rotate
+    with open(TOPICS_FILE, "w", encoding="utf-8") as f:
+        for t in topics[1:]:
+            f.write(f"{t}\n")
+            
+    return topic
 
 def generate_story_with_pollinations(topic: str) -> str:
     """Generate a short Turkish story about ancient women's history using paid Pollinations API."""
@@ -69,19 +87,26 @@ def generate_story_with_pollinations(topic: str) -> str:
     )
     prompt = f"Konu: {topic}. İlginç bir tarihi gerçek anlat."
 
-    url = f"https://gen.pollinations.ai/text/{quote(prompt)}"
-    headers = {"Authorization": f"Bearer {api_key}"}
-    params = {
-        "model": "nova-fast",
-        "temperature": 1.0,
-        "system": system,
-        "json": False
+    # Using the paid API V1 Chat Completions endpoint (OpenAI compatible)
+    url = f"{POLLINATIONS_BASE_URL}/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "openai", # Or 'gemini', 'nova' etc. 'openai' is solid for Turkish.
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": prompt}
+        ],
+        "temperature": 1.0
     }
 
     print(f"[story] Generating Turkish story for topic: {topic}")
-    r = requests.get(url, headers=headers, params=params, timeout=60)
+    r = requests.post(url, headers=headers, json=payload, timeout=60)
     r.raise_for_status()
-    text = r.text.strip()
+    response_json = r.json()
+    text = response_json['choices'][0]['message']['content'].strip()
 
     words = text.split()
     if len(words) > STORY_MAX_WORDS:
@@ -151,15 +176,14 @@ def generate_image(scene: str, idx: int) -> Path:
     )
     safe_prompt = quote(prompt)
     
-    # Using the working configuration - check if images have watermarks
-    url = f"https://image.pollinations.ai/prompt/{safe_prompt}"
+    # Using the paid gateway image endpoint
+    url = f"{POLLINATIONS_BASE_URL}/image/{safe_prompt}"
     headers = {"Authorization": f"Bearer {os.getenv('POLLINATIONS_API_KEY')}"}
     params = {
         "width": IMAGE_WIDTH,
         "height": IMAGE_HEIGHT,
         "model": "flux",  # Use flux model
         "seed": seed,
-        "safe": True,  # Enable strict content filtering to prevent NSFW (boolean)
         "nologo": True,  # Explicitly request no watermarks
         "negative_prompt": "worst quality, blurry, watermark, logo, text, signature, branded content"
     }

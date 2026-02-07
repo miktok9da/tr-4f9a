@@ -24,20 +24,26 @@ def test_text_generation():
     system = "You are a helpful assistant. Write a short story about ancient women."
     prompt = "Tell me about Cleopatra and her role in history"
 
-    url = f"https://gen.pollinations.ai/text/{quote(prompt)}"
-    headers = {"Authorization": f"Bearer {api_key}"}
-    params = {
-        "model": "nova-fast",
-        "temperature": 0.8,
-        "system": system,
-        "json": False
+    url = "https://gen.pollinations.ai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "openai",
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": prompt}
+        ],
+        "temperature": 0.8
     }
 
     try:
-        r = requests.get(url, headers=headers, params=params, timeout=30)
+        r = requests.post(url, headers=headers, json=payload, timeout=30)
         r.raise_for_status()
-
-        response = r.text.strip()
+        
+        response_json = r.json()
+        response = response_json['choices'][0]['message']['content'].strip()
         print("SUCCESS: Text generated!")
         print(f"Length: {len(response)} characters")
         print("First 200 characters:")
@@ -65,7 +71,8 @@ def test_image_generation():
 
     prompt = "beautiful ancient Egyptian woman, Cleopatra, detailed portrait, historical clothing"
 
-    url = f"https://image.pollinations.ai/prompt/{quote(prompt)}"
+    url = f"https://gen.pollinations.ai/image/{quote(prompt)}"
+    headers = {"Authorization": f"Bearer {api_key}"}
     params = {
         "width": 1024,
         "height": 1024,
@@ -74,7 +81,7 @@ def test_image_generation():
     }
 
     try:
-        r = requests.get(url, params=params, timeout=60)
+        r = requests.get(url, headers=headers, params=params, timeout=60)
         r.raise_for_status()
 
         # Save image

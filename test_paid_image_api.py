@@ -65,7 +65,7 @@ print()
 # Test 3: GET with key as query param
 print("Test 3: GET with key as query param")
 try:
-    url = f"https://image.pollinations.ai/prompt/{quote(prompt)}"
+    url = f"https://gen.pollinations.ai/image/{quote(prompt)}"
     params = {"model": "flux", "width": 1024, "height": 1024, "key": api_key}
     r = requests.get(url, params=params, timeout=30)
     print(f"Status: {r.status_code}")

@@ -33,22 +33,30 @@ def generate_new_topics(count=100):
 
     prompt = f"Antik medeniyetlerde kadınlar hakkında {count} benzersiz konu oluştur"
 
-    url = f"https://gen.pollinations.ai/text/{quote(prompt)}"
-    headers = {"Authorization": f"Bearer {api_key}"}
-    params = {
-        "model": "nova-fast",
-        "temperature": 0.9,
-        "system": system,
-        "json": False
+    # Using the paid API V1 Chat Completions endpoint
+    url = "https://gen.pollinations.ai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "openai",
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": prompt}
+        ],
+        "temperature": 0.9
     }
 
     print(f"[topics] Generating {count} new topics...")
-    r = requests.get(url, headers=headers, params=params, timeout=120)
+    r = requests.post(url, headers=headers, json=payload, timeout=120)
     r.raise_for_status()
+    response_json = r.json()
+    response_text = response_json['choices'][0]['message']['content'].strip()
     
     # Parse topics
     topics = []
-    for line in r.text.strip().split('\n'):
+    for line in response_text.split('\n'):
         # Remove numbering and clean
         cleaned = line.strip()
         # Remove common prefixes

@@ -27,21 +27,27 @@ def test_text_generation():
     prompt = "Merhaba, nasılsın?"
     system = "Sen yardımcı bir asistansın. Türkçe cevap ver."
 
-    url = f"https://gen.pollinations.ai/text/{quote(prompt)}"
-    headers = {"Authorization": f"Bearer {api_key}"}
-    params = {
+    url = "https://gen.pollinations.ai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    payload = {
         "model": "openai",
-        "temperature": 0.7,
-        "system": system,
-        "json": False
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": prompt}
+        ],
+        "temperature": 0.7
     }
 
     try:
         print(f"Sending request to: {url}")
-        r = requests.get(url, headers=headers, params=params, timeout=30)
+        r = requests.post(url, headers=headers, json=payload, timeout=30)
         r.raise_for_status()
 
-        response = r.text.strip()
+        response_json = r.json()
+        response = response_json['choices'][0]['message']['content'].strip()
         print("API Response:")
         print(response)
 

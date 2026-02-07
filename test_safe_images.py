@@ -27,8 +27,8 @@ def test_safe_image():
 
     print(f"Prompt: {prompt}")
 
-    # Going back to what was working before - you can check if images have watermarks
-    url = f"https://image.pollinations.ai/prompt/{quote(prompt)}"
+    # Using the paid gateway image endpoint
+    url = f"https://gen.pollinations.ai/image/{quote(prompt)}"
     headers = {"Authorization": f"Bearer {api_key}"}
     params = {
         "width": 1080,
