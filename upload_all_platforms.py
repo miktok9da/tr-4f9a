@@ -148,9 +148,7 @@ def generate_caption(phrases, category, platform="facebook"):
 
     caption_body = ""
     if en_text and native_text:
-        caption_body = en_text + "
-
-" + native_text
+        caption_body = en_text + "\n\n" + native_text
     elif en_text:
         caption_body = en_text
     elif native_text:
@@ -179,8 +177,7 @@ def generate_caption(phrases, category, platform="facebook"):
 
     hashtag = f"#{category.replace(' ', '')}" if category else "#History"
     caption_lines.append(f"{hashtag} #Success #Motivation")
-    return "
-".join(caption_lines)
+    return "\n".join(caption_lines)
 
 
 
